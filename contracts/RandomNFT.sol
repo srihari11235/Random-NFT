@@ -82,9 +82,9 @@ contract RandomNft is VRFConsumerBaseV2, ERC721URIStorage, Ownable {
      */
     function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords) internal override {
         address requester = vrfMapping[requestId];
+        tokenId = tokenId + 1;
         uint256 newTokenId = tokenId;
-        tokenId += 1;
-
+        
         uint256 moddedRng = randomWords[0] * MAX_CHANCE_VALUE;
         
         //Get the breed of the Dog based on rarity from the modded random word.         
@@ -113,8 +113,8 @@ contract RandomNft is VRFConsumerBaseV2, ERC721URIStorage, Ownable {
     function getBreedFromModdedRng(uint256 moddedRng) public pure returns(Breed) {
         uint256 commulativeSum = 0;
         uint256[3] memory chanceArray = getChanceArray();
-        for(uint i=0; i <= chanceArray.length; i++){
-            if(moddedRng >= commulativeSum && moddedRng < commulativeSum + chanceArray[i]) {
+        for(uint i=0; i < chanceArray.length; i++){
+            if(moddedRng >= commulativeSum && moddedRng < chanceArray[i]) {
                 return Breed(i);
             }
 
@@ -131,7 +131,7 @@ contract RandomNft is VRFConsumerBaseV2, ERC721URIStorage, Ownable {
      * 3 index having 60 percent chance - very common
      *  */ 
     function getChanceArray() public pure returns(uint256[3] memory) {
-        return [10, 30, MAX_CHANCE_VALUE];
+        return [10, 40, MAX_CHANCE_VALUE];
     }
 
     function getMintFee() public view returns(uint256) {

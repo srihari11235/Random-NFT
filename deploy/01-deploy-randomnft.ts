@@ -25,6 +25,7 @@ const deployRandomNFT: DeployFunction = async function( hre: HardhatRuntimeEnvir
 
     let subcriptionId = "";
     let vrfCoordinatorAddress = "";
+    let vrfCoordinatorMock;
     let tokenURIs: string[] = [
         "ipfs://bafyreif2ntho5lzic5dajwrb4jcngylwrca56jxqnivwzlnbg2hkfdpz6e/metadata.json",
         "ipfs://bafyreiencynthuab5jetrxifsyjqzvxnw2kdhdvosgc6khqhlohxx25x7y/metadata.json",
@@ -44,7 +45,7 @@ const deployRandomNFT: DeployFunction = async function( hre: HardhatRuntimeEnvir
 
 
     if(deploymentChains.includes(network.name)) {
-        const vrfCoordinatorMock = await ethers.getContract("VRFCoordinatorV2Mock", deployer);
+        vrfCoordinatorMock = await ethers.getContract("VRFCoordinatorV2Mock", deployer);
         vrfCoordinatorAddress = vrfCoordinatorMock.address;
 
         const tx = await vrfCoordinatorMock.createSubscription();
@@ -52,6 +53,8 @@ const deployRandomNFT: DeployFunction = async function( hre: HardhatRuntimeEnvir
 
         subcriptionId = txReciept.events[0].args.subId;
         await vrfCoordinatorMock.fundSubscription(subcriptionId, VRF_SUB_FUND_AMOUNT);
+
+        
     } else {
         vrfCoordinatorAddress = networkConfig[network.config.chainId!].vrfCoordinator!;
         subcriptionId = networkConfig[network.config.chainId!].subscriptionId!;
@@ -70,6 +73,11 @@ const deployRandomNFT: DeployFunction = async function( hre: HardhatRuntimeEnvir
         waitConfirmations: networkConfig[network.config.chainId!].waitBlockConfirmations || 1
     });
 
+
+    if(network.config.chainId == 31337) {
+        await vrfCoordinatorMock.addConsumer(subcriptionId, randomNFT.address);
+    }
+    
     log("RandomNFT Contract Deployed successfully");
 
     if(!deploymentChains.includes(network.name) && process.env.ETHERSCAN_APIKEY) {
